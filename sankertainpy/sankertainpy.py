@@ -202,7 +202,7 @@ def generate_sankey(result, type=1, cutoff= 0.05, emissions= True):
       target = result['targets'],
       value = result['scores'],
       color= result['colors'],
-      arrowlen=10,
+      #arrowlen=10,
     ))])
     fig.update_layout(width=1400)
     fig.update_layout(height=800)
