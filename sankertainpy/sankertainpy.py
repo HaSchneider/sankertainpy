@@ -98,7 +98,7 @@ def calc_quantile_flows(data, cutoff):
             new_sources.append(data['sources'][i])
             colors.append('rgba'+str(cmap_basic(0.5,0.6)))
             hoverlabel.append(f'score without MonteCarlo calculation ({round(np.quantile(flow, qu),4)})')
-    new_data={'targets':new_targets, 'sources':new_sources, 'scores':new_scores, 'nodes':data['nodes'],'colors':colors}
+    new_data={'targets':new_targets, 'sources':new_sources, 'scores':new_scores, 'nodes':data['nodes'],'colors':colors, 'metadata':data['metadata']}
     return(new_data, hoverlabel)
     
 
@@ -217,5 +217,5 @@ def generate_sankey(data, type=1, cutoff= 0.05, emissions= True, method= ''):
     ))])
     fig.update_layout(width=1400)
     fig.update_layout(height=800)
-    fig.update_layout(title_text= data['metadata']['name'] + ' - ' + data['metadata']['method'], font_size=12)
+    fig.update_layout(title_text= data['metadata']['activity'] + ' - ' + data['metadata']['method'], font_size=12)
     return(fig)
