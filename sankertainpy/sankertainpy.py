@@ -58,10 +58,13 @@ def calc_emissions(data, label_list):
     
     return(data, label_list)
 
-def calc_quantile_flows(data, cutoff):
+def calc_quantile_flows(data, cutoff,barrier_free):
     # Split flows with list of Monte Carlo datas into different quantiles
     total_score= np.mean(data['scores'][0])
-    cmap = matplotlib.cm.get_cmap('RdYlGn')
+    if barrier_free:
+        cmap = matplotlib.cm.get_cmap('BrBG')#PRGn#RdYlGn
+    else:
+        cmap = matplotlib.cm.get_cmap('RdYlGn')#PRGn#RdYlGn
     cmap_basic = matplotlib.cm.get_cmap('Blues')
     quantiles= np.arange(0.125,0.925,0.05) 
     #neg_quantiles= np.arange(0.9,0.9,0.1)
@@ -102,10 +105,13 @@ def calc_quantile_flows(data, cutoff):
     return(new_data, hoverlabel)
     
 
-def calc_colors(data, cutoff):
+def calc_colors(data, cutoff,barrier_free):
     #
     total_score= np.mean(data['scores'][0])
-    cmap_mc = matplotlib.cm.get_cmap('YlOrRd')
+    if barrier_free:
+        cmap_mc = matplotlib.cm.get_cmap('copper')
+    else:
+        cmap_mc = matplotlib.cm.get_cmap('YlOrRd')
     cmap_smc = matplotlib.cm.get_cmap('Blues')
     
     max_std= max([np.std(fl) for fl in data['scores']])
@@ -114,7 +120,7 @@ def calc_colors(data, cutoff):
     hoverlabel=[0]*len(data['scores'])
     for i, flow in enumerate(data['scores']):
         if type(flow) == list and np.mean(flow)/total_score > cutoff:    
-            scale=  round(np.std(flow)/max_std, 2) 
+            scale=  1-round(np.std(flow)/max_std, 2) 
             color= cmap_mc(scale,0.9)
             new_color=[]
             # 
@@ -144,7 +150,7 @@ def flip_negativ_values(data):
 
     return(data)
 
-def adjust_data(data, type, cutoff, emission):
+def adjust_data(data, type, cutoff, emission,barrier_free):
     
     
     label_list=[data['nodes'][nod]['name'] for nod in data['nodes']]
@@ -154,15 +160,15 @@ def adjust_data(data, type, cutoff, emission):
         data, label_list = calc_emissions(data, label_list)
     
     if type ==1:
-        data, hoverlabel= calc_quantile_flows(data, cutoff)
+        data, hoverlabel= calc_quantile_flows(data, cutoff,barrier_free)
     elif type ==0:
-        data, hoverlabel= calc_colors(data, cutoff)
+        data, hoverlabel= calc_colors(data, cutoff, barrier_free)
     
     #flip negative values:
     data= flip_negativ_values(data)
     return(data, label_list, hoverlabel)
 
-def generate_sankey(data, type=1, cutoff= 0.05, emissions= True, method= ''):
+def generate_sankey(data, type=1, cutoff= 0.05, emissions= True, method= '', barrier_free=True):
     '''
     Generate a plotly sankey figure with uncertainty. Made for visualizing LCA data from brightway2 activities. 
     
@@ -187,7 +193,7 @@ def generate_sankey(data, type=1, cutoff= 0.05, emissions= True, method= ''):
     '''
     data['metadata']= {'method':method, 'activity':data['nodes'][0]['name']}
 
-    data, label_list, hoverlabel = adjust_data(data, type, cutoff, emissions)    
+    data, label_list, hoverlabel = adjust_data(data, type, cutoff, emissions, barrier_free)    
 
     # style the figure:
     node_color=['grey']*len(label_list)
@@ -215,6 +221,7 @@ def generate_sankey(data, type=1, cutoff= 0.05, emissions= True, method= ''):
       customdata =hoverlabel,
       hovertemplate= '%{customdata}',
     ))])
+    
     fig.update_layout(width=1400)
     fig.update_layout(height=800)
     fig.update_layout(title_text= data['metadata']['activity'] + ' - ' + data['metadata']['method'], font_size=12)
